@@ -25,11 +25,13 @@
 
 use clap::Parser;
 
+pub use indoc::indoc;
+
 pub mod data;
 
 pub use data::get_data;
 
-const YEAR: usize = 2022;
+const YEAR: usize = 2023;
 
 pub type Part = fn(&str) -> i32;
 pub struct Solution {
