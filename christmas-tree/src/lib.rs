@@ -26,7 +26,6 @@
 use clap::Parser;
 
 pub use indoc::indoc;
-pub use peg;
 
 pub mod data;
 
