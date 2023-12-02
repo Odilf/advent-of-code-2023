@@ -2,6 +2,7 @@
 members = [
 	"christmas-tree",
 	"day1",
+	"day2",
 ]
 
 resolver = "2"
