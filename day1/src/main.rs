@@ -48,18 +48,15 @@ fn part2(input: &str) -> i32 {
         .sum()
 }
 
-#[cfg(test)]
-mod test {
-    use christmas_tree::indoc;
-
-    const EXAMPLE_1: &str = indoc! {r#"
+christmas_tree::examples! {
+    r#"
         1abc2
         pqr3stu8vwx
         a1b2c3d4e5f
         treb7uchet
-    "#};
+    "# => 142,
 
-    const EXAMPLE_2: &str = indoc! {r#"
+    r#"
         two1nine
         eightwothree
         abcone2threexyz
@@ -67,15 +64,6 @@ mod test {
         4nineeightseven2
         zoneight234
         7pqrstsixteen
-    "#};
-
-    #[test]
-    fn part1() {
-        assert_eq!(super::part1(EXAMPLE_1), 142);
-    }
-
-    #[test]
-    fn part2() {
-        assert_eq!(super::part2(EXAMPLE_2), 281);
-    }
+    "# => 281,
 }
+

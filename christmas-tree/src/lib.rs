@@ -4,7 +4,7 @@
 //! runs them based on command line arguments.
 //!
 //! You need to have two functions named `part1` and `part2` in the scope of the macro for it to
-//! work. 
+//! work.
 //!
 //! # Usage
 //!
@@ -26,6 +26,7 @@
 use clap::Parser;
 
 pub use indoc::indoc;
+pub use peg;
 
 pub mod data;
 
@@ -63,10 +64,32 @@ pub fn run_as_main(solution: Solution, day: u32) {
 macro_rules! day {
     ($day:literal) => {
         fn main() {
-            $crate::run_as_main($crate::Solution {
-                part1,
-                part2,
-            }, $day);
+            $crate::run_as_main($crate::Solution { part1, part2 }, $day);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! examples {
+    ($part:ident, $example:literal, $expected:expr) => {
+        #[test]
+        fn $part() {
+            assert_eq!(super::$part($crate::indoc! { $example }), $expected);
+        }
+    };
+
+    ($example:literal => $expected:expr $(,)?) => {
+        #[cfg(test)]
+        mod tests {
+            $crate::examples!(part1, $example, $expected);
+        }
+    };
+
+    ($example1:literal => $expected1:expr, $example2:literal => $expected2:expr $(,)?) => {
+        #[cfg(test)]
+        mod tests {
+            $crate::examples!(part1, $example1, $expected1);
+            $crate::examples!(part2, $example2, $expected2);
         }
     };
 }
