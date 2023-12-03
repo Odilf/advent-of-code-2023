@@ -84,6 +84,10 @@ macro_rules! examples {
         }
     };
 
+    ($example:literal => $expected1:expr, $expected2:expr $(,)?) => {
+        $crate::examples!($example => $expected1, $example => $expected2);
+    };
+
     ($example1:literal => $expected1:expr, $example2:literal => $expected2:expr $(,)?) => {
         #[cfg(test)]
         mod tests {
