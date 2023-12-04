@@ -1,7 +1,7 @@
 [workspace]
 members = [
-	"christmas-tree",
-	"day1",
+	"christmas-tree", 
+	"day1", 
 	"day2",
 	"day3",
 	"day4",

@@ -28,7 +28,6 @@ use clap::Parser;
 pub use indoc::indoc;
 
 pub mod data;
-mod cli;
 
 pub use data::get_data;
 
@@ -71,6 +70,8 @@ macro_rules! day {
 
 #[macro_export]
 macro_rules! examples {
+    () => {};
+
     ($part:ident, $example:literal, $expected:expr) => {
         #[test]
         fn $part() {
