@@ -9,6 +9,7 @@ with no relation to the previous one.
 
 So, what I'm actually doing is each day as a crate. All these crates are part of a workspace. To this
 end, I've also created a small framework called `christmas_tree` that handles most of the boilerplate.
+Of course, it fetches data using a session token in `.env` and caches it. 
 
 I think this is as minimal as it gets:
 
