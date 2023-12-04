@@ -5,15 +5,19 @@ use clap::Parser;
 
 #[derive(Debug, Parser)]
 pub struct Options {
+    /// Day of the month. If it's blank, it will automatically use the day from the system clock.
     #[clap(short, long)]
     day: Option<u8>,
 
+    /// Whether to use `peg` for parsing. Defaults to `true`
     #[clap(short, long, default_value_t = true)]
     peg: bool,
 
+    /// Whether to use `glam` for vectors. Defaults to `false`
     #[clap(short, long, default_value_t = false)]
     glam: bool,
 
+    /// Comma separated list of additional dependencies. 
     #[clap(long, value_delimiter = ',', default_value = "")]
     deps: Vec<String>,
 }

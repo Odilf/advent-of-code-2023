@@ -1,6 +1,6 @@
 # Advent of Code 2023
 
-These are my advent of code solutions for 2023, using Rust.
+These are my advent of code solutions for 2023, using Rust (and Neovim).
 
 It is surprisingly challenging to figure out what's the best architecture for AOC in Rust. 
 I tried once to just have every day as a module, but that was annoying and full of boilerplate,
@@ -35,3 +35,9 @@ christmas_tree::examples! {
     " => 13,
 }
 ```
+
+Also you can run `christmas_tree` as a binary to get a cli interface that can create the day crates. 
+If you don't specify a day for the argument then it creates the one for the day you're on (if it's the
+advent calendar season). 
+
+Run `christmas_tree --help` to get more info. 
