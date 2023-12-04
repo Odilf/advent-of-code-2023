@@ -25,9 +25,7 @@ pub mod cache {
 
     pub fn file_path(day: u32) -> PathBuf {
         let dir = PathBuf::from(CACHE_DIR);
-        let file_path = dir.join(format!("day{}.ron", day));
-
-        file_path
+        dir.join(format!("day{}.ron", day))
     }
 
     pub fn get_data(day: u32) -> Option<DayData> {
@@ -58,7 +56,7 @@ fn fetch_data(day: u32, session_token: &str) -> reqwest::Result<DayData> {
     let client = reqwest::blocking::Client::new();
 
     let response = client
-        .get(&format!(
+        .get(format!(
             "https://adventofcode.com/{}/day/{}/input",
             YEAR, day
         ))
