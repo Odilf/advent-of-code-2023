@@ -28,6 +28,7 @@ use clap::Parser;
 pub use indoc::indoc;
 
 pub mod data;
+mod cli;
 
 pub use data::get_data;
 
@@ -52,7 +53,7 @@ pub fn run_as_main(solution: Solution, day: u32) {
         Some(1) => println!("{}", (solution.part1)(&get_data(day).input)),
         Some(2) => println!("{}", (solution.part2)(&get_data(day).input)),
         None => {
-            println!("part 1: {}", (solution.part1)(&get_data(day).input));
+            println!("Part 1: {}", (solution.part1)(&get_data(day).input));
             println!("Part 2: {}", (solution.part2)(&get_data(day).input));
         }
         _ => panic!("Part should be either 1 or 2"),
