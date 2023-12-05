@@ -33,10 +33,10 @@ pub use data::get_data;
 
 const YEAR: usize = 2023;
 
-pub type Part = fn(&str) -> i32;
-pub struct Solution {
-    pub part1: Part,
-    pub part2: Part,
+pub type Part<T = i32> = fn(&str) -> T;
+pub struct Solution<T = i32> {
+    pub part1: Part<T>,
+    pub part2: Part<T>,
 }
 
 #[derive(Parser, Debug)]
@@ -45,7 +45,10 @@ struct Args {
     part: Option<u32>,
 }
 
-pub fn run_as_main(solution: Solution, day: u32) {
+pub fn run_as_main<T>(solution: Solution<T>, day: u32)
+where
+    T: std::fmt::Display,
+{
     let args = Args::parse();
 
     match args.part {
