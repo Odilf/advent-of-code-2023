@@ -272,14 +272,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "day0"
-version = "0.1.0"
-dependencies = [
- "christmas-tree",
- "peg",
-]
-
-[[package]]
 name = "day1"
 version = "0.1.0"
 dependencies = [
