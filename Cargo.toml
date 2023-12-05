@@ -1,10 +1,10 @@
 [workspace]
 members = [
-	"christmas-tree", 
+	"christmas-tree",
 	"day1", 
 	"day2",
 	"day3",
-	"day4",
+	"day4", "day5",
 ]
 
 resolver = "2"
