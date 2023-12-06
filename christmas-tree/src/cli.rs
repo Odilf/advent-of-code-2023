@@ -17,7 +17,7 @@ pub struct Options {
     #[clap(short, long, default_value_t = false)]
     glam: bool,
 
-    /// Comma separated list of additional dependencies. 
+    /// Comma separated list of additional dependencies.
     #[clap(long, value_delimiter = ',', default_value = "")]
     deps: Vec<String>,
 }

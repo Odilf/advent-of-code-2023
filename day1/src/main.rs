@@ -66,4 +66,3 @@ christmas_tree::examples! {
         7pqrstsixteen
     "# => 281,
 }
-

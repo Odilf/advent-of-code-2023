@@ -46,13 +46,13 @@ fn part2(input: &str) -> i64 {
     let (time, distance) = parse_joined(input);
 
     let find = |t| {
-            let remaining = time - t;
-            let accelerated = t;
-            if accelerated * remaining > distance {
-                Some(t)
-            } else {
-                None
-            }
+        let remaining = time - t;
+        let accelerated = t;
+        if accelerated * remaining > distance {
+            Some(t)
+        } else {
+            None
+        }
     };
 
     let lower_bound = (1..=time).find_map(find).unwrap();

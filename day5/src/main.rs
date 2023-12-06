@@ -97,6 +97,9 @@ fn part1(input: &str) -> i64 {
     find_lowest_seed(seeds.into_par_iter(), &maps).unwrap()
 }
 
+/// This implementation is very brute-forcey, but with the help of
+/// rayon it does compute the proper solution in a bit under 10s on
+/// my machine.
 fn part2(input: &str) -> i64 {
     let (seed_ranges, maps) = parser::whole(input).unwrap();
 

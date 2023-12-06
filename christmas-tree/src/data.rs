@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use super::YEAR;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DayData {
