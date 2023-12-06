@@ -22,15 +22,23 @@ pub struct Options {
     deps: Vec<String>,
 }
 
+fn get_todays_day() -> u8 {
+    let now = Local::now();
+
+    let dec_1st = now.with_month(12).unwrap().with_day(1).unwrap();
+    let day = now.signed_duration_since(dec_1st);
+    day.num_days() as u8 + 1
+}
+
+#[test]
+fn today() {
+    assert_eq!(get_todays_day(), 6)
+}
+
 pub fn run(options: Options) -> std::io::Result<()> {
     let day = options.day.unwrap_or_else(|| {
         println!("No day specified, using today's date");
-        let now = Local::now();
-
-        let day = now
-            .signed_duration_since(now.with_month(12).unwrap())
-            .num_days();
-        day as u8
+        get_todays_day()
     });
 
     if !(0..=25).contains(&day) {
