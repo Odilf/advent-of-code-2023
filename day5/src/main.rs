@@ -92,8 +92,6 @@ fn find_lowest_seed(seeds: impl ParallelIterator<Item = i64>, maps: &[Map]) -> O
 fn part1(input: &str) -> i64 {
     let (seeds, maps) = parser::whole(input).unwrap();
 
-    dbg!(seeds.len());
-
     find_lowest_seed(seeds.into_par_iter(), &maps).unwrap()
 }
 
