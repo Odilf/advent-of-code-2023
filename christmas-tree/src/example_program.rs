@@ -1,10 +1,10 @@
 christmas_tree::day!({day});
 
-fn part1(input: &str) -> i32 {{
+fn part1(input: &str) -> i64 {{
    todo!() 
 }}
 
-fn part2(input: &str) -> i32 {{
+fn part2(input: &str) -> i64 {{
     todo!()
 }}
 

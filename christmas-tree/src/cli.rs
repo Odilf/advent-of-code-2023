@@ -30,11 +30,6 @@ fn get_todays_day() -> u8 {
     day.num_days() as u8 + 1
 }
 
-#[test]
-fn today() {
-    assert_eq!(get_todays_day(), 6)
-}
-
 pub fn run(options: Options) -> std::io::Result<()> {
     let day = options.day.unwrap_or_else(|| {
         println!("No day specified, using today's date");
@@ -48,17 +43,13 @@ pub fn run(options: Options) -> std::io::Result<()> {
     let crate_name = format!("day{day}");
 
     std::process::Command::new("cargo")
-        .arg("init")
-        .arg(&crate_name)
+        .args(["init", &crate_name])
         .spawn()?
         .wait()?;
 
     std::process::Command::new("cargo")
-        .arg("add")
-        .arg("--path")
-        .arg("christmas-tree/")
-        .arg("--package")
-        .arg(&crate_name)
+        .args(["add", "--path", "christmas-tree/"])
+        .args(["--package", &crate_name])
         .spawn()?
         .wait()?;
 
@@ -80,8 +71,7 @@ pub fn run(options: Options) -> std::io::Result<()> {
     std::process::Command::new("cargo")
         .arg("add")
         .args(deps)
-        .arg("--package")
-        .arg(&crate_name)
+        .args(["--package", &crate_name])
         .spawn()?
         .wait()?;
 
