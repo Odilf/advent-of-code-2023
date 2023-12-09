@@ -2,39 +2,36 @@ use std::collections::HashMap;
 
 christmas_tree::day!(8);
 
-enum Instruction {
-    Left,
-    Right,
-}
-
-impl From<char> for Instruction {
-    fn from(value: char) -> Self {
-        match value {
-            'L' => Self::Left,
-            'R' => Self::Right,
-            other => panic!("Invalid instruction {other}"),
-        }
-    }
-}
+type Entry<'a> = (&'a str, &'a str);
+type Map<'a> = HashMap<&'a str, Entry<'a>>;
 
 peg::parser! {
     grammar parser() for str {
-        pub rule instructions() -> Vec<Instruction>
-            = i:$(['L' | 'R']+) { i.chars().map(Instruction::from).collect() }
+        pub rule instructions() -> Vec<u8>
+            = i:$(['L' | 'R']+) { i.as_bytes().to_vec() }
 
         rule node() -> &'input str
             = n:$(['0'..='9' | 'A'..='Z']+) { n }
 
         rule _  = [' ' | '\n']*
 
-        pub rule edge() -> (&'input str, (&'input str, &'input str))
+        rule edge() -> (&'input str, Entry<'input>)
             = a:node() _ "=" _ "(" _ b:node() _ ", " _ c:node() _ ")" { (a, (b, c)) }
 
-        pub rule edges() -> HashMap<&'input str, (&'input str, &'input str)>
+        rule edges() -> Map<'input>
             = e:edge() ++ _ { e.into_iter().collect() }
 
-        pub rule whole() -> (Vec<Instruction>, HashMap<&'input str, (&'input str, &'input str)>)
+        pub rule whole() -> (Vec<u8>, Map<'input>)
             = i:instructions() _ e:edges() _ { (i, e) }
+    }
+}
+
+fn get_next<'a>(current_node: &str, instructions: &[u8], i: usize, edges: &Map<'a>) -> &'a str {
+    let (left, right) = edges.get(current_node).unwrap();
+    match instructions[i % instructions.len()] {
+        b'L' => left,
+        b'R' => right,
+        _ => panic!(),
     }
 }
 
@@ -43,17 +40,11 @@ fn part1(input: &str) -> i64 {
 
     let mut current_node = "AAA";
     for i in 0.. {
-        let instruction = &instructions[i % instructions.len()];
-
-        let (left, right) = edges.get(current_node).unwrap();
-        current_node = match instruction {
-            Instruction::Left => left,
-            Instruction::Right => right,
-        };
-
         if current_node == "ZZZ" {
-            return i as i64 + 1;
+            return i as i64;
         }
+
+        current_node = get_next(current_node, &instructions, i, &edges);
     }
 
     unreachable!()
@@ -67,20 +58,14 @@ fn part2(input: &str) -> i64 {
     let starts = edges.keys().filter(|node| ends_with(node, b'A'));
 
     starts
-        .map(|start| {
+        .map(|&start| {
             let mut current_node = start;
             for i in 0.. {
                 if ends_with(current_node, b'Z') {
                     return i as i64;
                 }
 
-                let instruction = &instructions[i % instructions.len()];
-
-                let (left, right) = edges.get(current_node).unwrap();
-                current_node = match instruction {
-                    Instruction::Left => left,
-                    Instruction::Right => right,
-                };
+                current_node = get_next(current_node, &instructions, i, &edges);
             }
 
             unreachable!()
