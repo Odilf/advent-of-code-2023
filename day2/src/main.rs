@@ -8,7 +8,7 @@ enum Color {
 }
 
 impl Color {
-    pub const fn max(&self) -> usize {
+    pub const fn max(self) -> usize {
         match self {
             Color::Red => 12,
             Color::Green => 13,

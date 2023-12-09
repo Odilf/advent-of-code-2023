@@ -22,7 +22,7 @@ impl Value {
                 'Q' => Self::Queen,
                 'K' => Self::King,
                 'A' => Self::Ace,
-                other => panic!("Invalid char: {}", other),
+                other => panic!("Invalid char: {other}"),
             }
         }
     }
@@ -98,7 +98,7 @@ fn solve(input: &str, j_is_joker: bool) -> i64 {
             let hand = consume(chars.map(|c| Value::new(c, j_is_joker)));
             let rank = Rank::new(hand);
             let amount = parts.next().unwrap().parse().unwrap();
-            Bid { rank, amount, hand }
+            Bid { rank, hand, amount }
         })
         .collect::<Vec<_>>();
 

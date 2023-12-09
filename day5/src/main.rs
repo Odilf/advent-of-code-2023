@@ -1,8 +1,9 @@
 use rayon::{prelude::*, slice::ParallelSlice};
+use std::cmp::Ordering;
 
 christmas_tree::day!(5);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Range {
     destination_start: i64,
     source_start: i64,
@@ -16,6 +17,20 @@ impl Range {
 
     pub fn source(&self) -> std::ops::Range<i64> {
         self.source_start..self.source_start + self.length
+    }
+
+    pub fn cmp(&self, key: i64) -> Ordering {
+
+        let source = self.source();
+        let before_end = key < source.end;
+        let after_start = key >= source.start;
+
+        match (before_end, after_start) {
+            (true, true) => Ordering::Equal,
+            (true, false) => Ordering::Greater,
+            (false, true) => Ordering::Less,
+            (false, false) => unreachable!(),
+        }
     }
 }
 
@@ -33,19 +48,7 @@ impl From<Vec<Range>> for Map {
 
 impl Map {
     pub fn get(&self, key: i64) -> i64 {
-        let Ok(range_index) = self.ranges.binary_search_by(|range| {
-            let source = range.source();
-            let before_end = key < source.end;
-            let after_start = key >= source.start;
-
-            use std::cmp::Ordering;
-            match (before_end, after_start) {
-                (true, true) => Ordering::Equal,
-                (true, false) => Ordering::Greater,
-                (false, true) => Ordering::Less,
-                (false, false) => unreachable!(),
-            }
-        }) else {
+        let Ok(range_index) = self.ranges.binary_search_by(|range| range.cmp(key)) else {
             return key;
         };
 

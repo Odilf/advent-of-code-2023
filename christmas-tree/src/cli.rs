@@ -6,7 +6,7 @@ use clap::Parser;
 #[derive(Debug, Parser)]
 pub struct Options {
     /// Day of the month. If it's blank, it will automatically use the day from the system clock.
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = clap::value_parser!(u8).range(1..=25))]
     day: Option<u8>,
 
     /// Whether to use `peg` for parsing. Defaults to `true`
@@ -30,15 +30,13 @@ fn get_todays_day() -> u8 {
     day.num_days() as u8 + 1
 }
 
-pub fn run(options: Options) -> std::io::Result<()> {
+pub fn run(options: &Options) -> std::io::Result<()> {
     let day = options.day.unwrap_or_else(|| {
         println!("No day specified, using today's date");
         get_todays_day()
     });
 
-    if !(0..=25).contains(&day) {
-        panic!("Current day is not in the advent calendar range");
-    }
+    assert!((0..=25).contains(&day), "Day must be between 1 and 25");
 
     let crate_name = format!("day{day}");
 
@@ -61,11 +59,11 @@ pub fn run(options: Options) -> std::io::Result<()> {
         .collect();
 
     if options.peg {
-        deps.push("peg")
+        deps.push("peg");
     }
 
     if options.glam {
-        deps.push("glam")
+        deps.push("glam");
     }
 
     std::process::Command::new("cargo")
@@ -75,7 +73,7 @@ pub fn run(options: Options) -> std::io::Result<()> {
         .spawn()?
         .wait()?;
 
-    let file = File::create(format!("{}/src/main.rs", crate_name)).unwrap();
+    let file = File::create(format!("{crate_name}/src/main.rs")).unwrap();
     let stdio = Stdio::from(file);
 
     std::process::Command::new("echo")

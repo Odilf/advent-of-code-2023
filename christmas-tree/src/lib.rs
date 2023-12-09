@@ -1,6 +1,6 @@
 //! Library for holding all the boilerplate code for the advent of code solutions
 //!
-//! It provides the [christmas_tree::day] macro which picks up the solutions for each part and
+//! It provides the [`christmas_tree::day`] macro which picks up the solutions for each part and
 //! runs them based on command line arguments.
 //!
 //! You need to have two functions named `part1` and `part2` in the scope of the macro for it to
@@ -27,9 +27,7 @@ use clap::Parser;
 
 pub use indoc::indoc;
 
-pub mod data;
-
-pub use data::get_data;
+mod data;
 
 const YEAR: usize = 2023;
 
@@ -41,11 +39,14 @@ pub struct Solution<T, U> {
 
 #[derive(Parser, Debug)]
 struct Args {
-    #[clap(short, long)]
+    #[clap(short, long, value_parser = clap::value_parser!(u32).range(1..=2))]
     part: Option<u32>,
 }
 
-pub fn run_as_main<T, U>(solution: Solution<T, U>, day: u32)
+/// Runs the solution as a binary
+///
+/// # Panics
+pub fn run_as_main<T, U>(solution: &Solution<T, U>, day: u32)
 where
     T: std::fmt::Display,
     U: std::fmt::Display,
@@ -53,13 +54,13 @@ where
     let args = Args::parse();
 
     match args.part {
-        Some(1) => println!("{}", (solution.part1)(&get_data(day).input)),
-        Some(2) => println!("{}", (solution.part2)(&get_data(day).input)),
+        Some(1) => println!("{}", (solution.part1)(&data::get(day).input)),
+        Some(2) => println!("{}", (solution.part2)(&data::get(day).input)),
         None => {
-            println!("Part 1: {}", (solution.part1)(&get_data(day).input));
-            println!("Part 2: {}", (solution.part2)(&get_data(day).input));
+            println!("Part 1: {}", (solution.part1)(&data::get(day).input));
+            println!("Part 2: {}", (solution.part2)(&data::get(day).input));
         }
-        _ => panic!("Part should be either 1 or 2"),
+        _ => unreachable!("Handled by clap"),
     }
 }
 
@@ -67,7 +68,7 @@ where
 macro_rules! day {
     ($day:literal) => {
         fn main() {
-            $crate::run_as_main($crate::Solution { part1, part2 }, $day);
+            $crate::run_as_main(&$crate::Solution { part1, part2 }, $day);
         }
     };
 }
