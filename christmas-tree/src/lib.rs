@@ -73,33 +73,142 @@ macro_rules! day {
     };
 }
 
+/// Macro for making it easier to write examples
+///
+/// # Examples
+///
+/// The main way you use it for part 1 and 2 is like this:
+///
+/// ```rust
+/// christmas_tree::examples! {
+///    r"
+///         example input
+///    " => 4,
+///
+///    r"
+///         Example input for part 2
+///     " => 4,
+/// }
+/// ```
+///
+/// The indentation is handled by the [`indoc`] macro.
+///
+/// If part 1 and 2 have the same input, you can combine them:
+///
+/// ```rust
+/// christmas_tree::examples! {
+///   r"
+///         example input
+///         for both part 1 and 2
+///    " => 4, 8,
+/// }
+/// ```
+///
+/// If there are multiple examples for a part, you can do this:
+///
+/// ```rust
+/// christmas_tree::examples! {
+///     part1 {
+///         r"
+///             example input
+///             for part 1
+///         " => 4,
+///
+///         r"
+///             another example input
+///             for part 1
+///         " => 8,
+///     }
+///
+///     part2 {
+///         r"
+///             example input
+///             for part 2
+///         " => 4,
+///     }
+/// }
+/// ```
+///
+/// You can also be more granular:
+///
+/// ```rust
+/// #[cfg(test)]
+/// mod tests {
+///     christmas_tree::examples!(part1, test_simple, r"example input" => 4);
+/// }
 #[macro_export]
 macro_rules! examples {
-    () => {};
-
-    ($part:ident, $example:literal, $expected:expr) => {
-        #[test]
-        fn $part() {
-            assert_eq!(super::$part($crate::indoc! { $example }), $expected);
+    // This rule needs to be first because otherwise it messes up the priorities
+    // 5. Part 1 and 2 with different inputs (calls 3)
+    (
+        $example1:literal => $expected1:expr,
+        $example2:literal => $expected2:expr $(,)?
+    ) => {
+        #[cfg(test)]
+        mod tests {
+            $crate::examples!(super::part1, part1: $example1 => $expected1);
+            $crate::examples!(super::part2, part2: $example2 => $expected2);
         }
     };
 
+    // 1. Single test with name
+    ($part:path, $test_name:ident : $example:literal => $expected:expr $(,)?) => {
+        #[test]
+        fn $test_name() {
+            assert_eq!($part($crate::indoc! { $example }), $expected);
+        }
+    };
+
+    // 2. Multiple named tests (calls 1)
+    ($part:path, $($test_name:ident: $example:literal => $expected:expr),+ $(,)?) => {
+        $(
+            $crate::examples!($part, $test_name: $example => $expected);
+        )+
+    };
+
+    // 3. Single test with part as name (calls 1)
+    ($part:path, $example:literal => $expected:expr $(,)?) => {
+        $crate::examples!($part, $part: $example => $expected);
+    };
+
+    // 4. Only part 1 (calls 3)
     ($example:literal => $expected:expr $(,)?) => {
         #[cfg(test)]
         mod tests {
-            $crate::examples!(part1, $example, $expected);
+            $crate::examples!(part1, $example => $expected);
         }
     };
 
+
+    // 6. Part 1 and 2 with same input (calls 5)
     ($example:literal => $expected1:expr, $expected2:expr $(,)?) => {
         $crate::examples!($example => $expected1, $example => $expected2);
     };
 
-    ($example1:literal => $expected1:expr, $example2:literal => $expected2:expr $(,)?) => {
+
+    // 7. Multiple tests (calls 2)
+    (
+        $(part1 { $($tests1:tt)* })? $(,)?
+        $(part2 { $($tests2:tt)* })? $(,)?
+    ) => {
         #[cfg(test)]
         mod tests {
-            $crate::examples!(part1, $example1, $expected1);
-            $crate::examples!(part2, $example2, $expected2);
+            mod test_part1 {
+                $(
+                    $crate::examples!(super::super::part1, $($tests1)*);
+                )?
+            }
+
+            mod part2 {
+                $(
+                    $crate::examples!(super::super::part2, $($tests2)*);
+                )?
+            }
         }
     };
+
+    // 0. Empty
+    () => {};
+
+
 }
