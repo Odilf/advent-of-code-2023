@@ -214,37 +214,19 @@ fn part2(input: &str) -> i64 {
 
     for y in 0..=size.y {
         let mut inside = false;
-        let mut first_bend_is_north = false;
 
         for x in 0..=size.x {
             let pos = IVec2::new(x, y);
 
             match main_loop.get(&pos) {
-                // Every time you find a wall it means you're crossing between inside and outside
-                Some(Tile::Pipe { vertical: true }) => inside = !inside,
-
-                // If you encounter a bend, it's not that clear. Turns out, if the bends go in
-                // opposite directions, you're crossing between inside and outside. If they go in
-                // the same direction, you're not.
-                //
-                // This is kind of intuitive, but a nice way to think about it is as if you're
-                // titlitng a ray slightly up or down. The details are left as an exercise to the reader.
-                Some(Tile::Bend {
-                    north: current_bend_is_north,
-                    east,
-                }) => {
-                    if *east {
-                        first_bend_is_north = *current_bend_is_north;
-                    } else {
-                        if first_bend_is_north != *current_bend_is_north {
-                            inside = !inside;
-                        }
-                    }
+                Some(Tile::Pipe { vertical: true } | Tile::Bend { north: true, .. }) => {
+                    inside = !inside
                 }
 
                 None if inside => {
                     count += 1;
                 }
+
                 _ => (),
             }
         }
