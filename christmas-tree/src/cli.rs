@@ -38,7 +38,7 @@ pub fn run(options: &Options) -> std::io::Result<()> {
 
     assert!((0..=25).contains(&day), "Day must be between 1 and 25");
 
-    let crate_name = format!("day{day}");
+    let crate_name = format!("day{day:0>2}");
 
     std::process::Command::new("cargo")
         .args(["init", &crate_name])
