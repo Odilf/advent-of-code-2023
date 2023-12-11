@@ -27,22 +27,24 @@ impl TryFrom<char> for Tile {
     type Error = NonTile;
 
     fn try_from(c: char) -> Result<Self, Self::Error> {
+        use Tile::*;
+
         Ok(match c {
-            '|' => Tile::Pipe { vertical: true },
-            '-' => Tile::Pipe { vertical: false },
-            'L' => Tile::Bend {
+            '|' => Pipe { vertical: true },
+            '-' => Pipe { vertical: false },
+            'L' => Bend {
                 north: true,
                 east: true,
             },
-            'J' => Tile::Bend {
+            'J' => Bend {
                 north: true,
                 east: false,
             },
-            '7' => Tile::Bend {
+            '7' => Bend {
                 north: false,
                 east: false,
             },
-            'F' => Tile::Bend {
+            'F' => Bend {
                 north: false,
                 east: true,
             },
@@ -54,7 +56,7 @@ impl TryFrom<char> for Tile {
 }
 
 impl Tile {
-    pub fn all_neighbor_deltas() -> [IVec2; 4] {
+    pub const fn all_neighbor_deltas() -> [IVec2; 4] {
         [NORTH, SOUTH, EAST, WEST]
     }
 
@@ -82,28 +84,28 @@ impl Tile {
         .map(Into::into)
     }
 
-    pub fn north(&self) -> bool {
+    pub const fn north(&self) -> bool {
         match self {
             Tile::Pipe { vertical } => *vertical,
             Tile::Bend { north, .. } => *north,
         }
     }
 
-    pub fn south(&self) -> bool {
+    pub const fn south(&self) -> bool {
         match self {
             Tile::Pipe { vertical } => *vertical,
             Tile::Bend { north, .. } => !*north,
         }
     }
 
-    pub fn east(&self) -> bool {
+    pub const fn east(&self) -> bool {
         match self {
             Tile::Pipe { vertical } => !*vertical,
             Tile::Bend { east, .. } => *east,
         }
     }
 
-    pub fn west(&self) -> bool {
+    pub const fn west(&self) -> bool {
         match self {
             Tile::Pipe { vertical } => !*vertical,
             Tile::Bend { east, .. } => !*east,
@@ -112,21 +114,23 @@ impl Tile {
 }
 
 fn parse(input: &str) -> (HashMap<IVec2, Tile>, IVec2) {
-    let mut output = HashMap::<IVec2, Tile>::new();
+    let mut output = HashMap::new();
     let mut start = None;
 
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
             let pos = IVec2::new(x as i32, y as i32);
-            match c.try_into() {
+            match Tile::try_from(c) {
                 Ok(tile) => {
                     output.insert(pos, tile);
                 }
-                Err(NonTile::Empty) => (),
+
                 Err(NonTile::Start) => {
                     assert!(start.is_none());
                     start = Some(pos);
                 }
+
+                Err(NonTile::Empty) => (),
             };
         }
     }
