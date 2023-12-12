@@ -1,6 +1,5 @@
-use std::{collections::HashMap, cell::RefCell};
+use std::collections::HashMap;
 
-use memoize::memoize;
 use rayon::{prelude::ParallelIterator, str::ParallelString};
 
 christmas_tree::day!(12);
@@ -10,103 +9,141 @@ peg::parser! {
         rule number() -> i64
             = n:$(['0'..='9']+) { n.parse().unwrap() }
 
-        rule tile() -> Option<Tile>
-            = "#" { Some(Tile::Beacon) }
-            / "?" { Some(Tile::Broken) }
-            / "." { None }
+        rule tile() -> Spring
+            = "#" { Spring::Operational }
+            / "?" { Spring::Unknown }
+            / "." { Spring::Damaged }
 
         rule _ = [' ' | '\t' | '\n']*
 
-        pub rule line() -> (Vec<Option<Tile>>, Vec<i64>)
+        pub rule line() -> (Vec<Spring>, Vec<i64>)
             = tiles:tile()+ _ numbers:number() ** "," { (tiles, numbers) }
 
-        pub rule lines() -> Vec<(Vec<Option<Tile>>, Vec<i64>)>
+        pub rule lines() -> Vec<(Vec<Spring>, Vec<i64>)>
             = l:line() ** "\n" { l }
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-enum Tile {
-    Beacon,
-    Broken,
+enum Spring {
+    Operational,
+    Damaged,
+    Unknown,
 }
 
-fn count_arrangments(
-    beacons: &mut [Option<Tile>],
-    bundles: &mut [i64],
-    prev_was_beacon: bool,
-    cache: &mut HashMap<(Vec<Option<Tile>>, Vec<i64>), i64>
-) -> i64 {
-    let key = (beacons.to_vec(), bundles.to_vec());
-    if let Some(output) = cache.get(&key) {
-        return *output;
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct BundleData {
+    index: usize,
+    used: i64,
+    last_was_operational: bool,
+}
+
+#[derive(Default, Clone, Debug, PartialEq, Eq, Hash)]
+struct Data {
+    spring_index: usize,
+    bundle: BundleData,
+}
+
+impl Data {
+    pub fn next(&self) -> Self {
+        Self {
+            spring_index: self.spring_index + 1,
+            ..self.clone()
+        }
     }
 
-    let Some(bundle) = bundles.get(0) else {
-        return if beacons.iter().any(|b| matches!(b, Some(Tile::Beacon))) {
-            0
-        } else {
-            1
+    pub fn use_bundle(&self) -> Self {
+        Self {
+            spring_index: self.spring_index + 1,
+            bundle: BundleData {
+                used: self.bundle.used + 1,
+                last_was_operational: true,
+                ..self.bundle
+            },
+        }
+    }
+
+    pub fn next_bundle(&self) -> Self {
+        Self {
+            spring_index: self.spring_index + 1,
+            bundle: BundleData {
+                used: 0,
+                index: self.bundle.index + 1,
+                last_was_operational: false,
+            },
+        }
+    }
+}
+
+fn count_arrangments(springs: &[Spring], bundles: &[i64]) -> i64 {
+    fn execute(
+        data: Data,
+        springs: &[Spring],
+        bundles: &[i64],
+        cache: &mut HashMap<Data, i64>,
+    ) -> i64 {
+        if let Some(&count) = cache.get(&data) {
+            return count;
+        }
+
+        let Data {
+            spring_index,
+            bundle,
+        } = data;
+
+        let spring = springs.get(spring_index);
+        let bundle_size = bundles
+            .get(bundle.index)
+            .map(|b| b - bundle.used)
+            .filter(|b| *b > 0);
+
+        let exec_operational = |cache| match bundle_size {
+            None => 0,
+            Some(_) => execute(data.use_bundle(), springs, bundles, cache),
         };
-    };
 
-    let output = match beacons.get(0) {
-        Some(Some(Tile::Beacon)) => {
-            if *bundle == 0 {
-                0
-            } else {
-                debug_assert!(*bundle > 0);
-                bundles[0] -= 1;
-                let output = count_arrangments(&mut beacons[1..], bundles, true, cache);
-                bundles[0] += 1;
-                output
-            }
-        }
-        Some(None) => {
-            if prev_was_beacon {
-                if *bundle == 0 {
-                    count_arrangments(&mut beacons[1..], &mut bundles[1..], false, cache)
-                } else {
-                    debug_assert!(*bundle > 0);
+        let exec_damaged = |cache| match bundle_size {
+            None => execute(data.next_bundle(), springs, bundles, cache),
+            Some(_) => {
+                if data.bundle.last_was_operational {
                     0
+                } else {
+                    execute(data.next(), springs, bundles, cache)
                 }
-            } else {
-                debug_assert!(*bundle > 0);
-                count_arrangments(&mut beacons[1..], bundles, false, cache)
             }
-        }
-        Some(Some(Tile::Broken)) => {
-            let mut output = 0;
+        };
 
-            beacons[0] = Some(Tile::Beacon);
-            output += count_arrangments(beacons, bundles, prev_was_beacon, cache);
+        let result = match spring {
+            None => match bundle_size {
+                None if bundle.index >= bundles.len()
+                    || (bundle.index == bundles.len() - 1
+                        && bundles[bundle.index] == bundle.used) =>
+                {
+                    1
+                }
+                _ => 0,
+            },
 
-            beacons[0] = None;
-            output += count_arrangments(beacons, bundles, prev_was_beacon, cache);
+            Some(spring) => match spring {
+                Spring::Operational => exec_operational(cache),
+                Spring::Damaged => exec_damaged(cache),
+                Spring::Unknown => exec_operational(cache) + exec_damaged(cache),
+            },
+        };
 
-            beacons[0] = Some(Tile::Broken);
+        cache.insert(data, result);
+        result
+    }
 
-            output
-        }
-        None => {
-            if *bundle == 0 && bundles.len() == 1 {
-                1
-            } else {
-                0
-            }
-        }
-    };
-
-    cache.insert(key, output);
-    output
+    execute(Data::default(), springs, bundles, &mut HashMap::new())
 }
 
 fn part1(input: &str) -> i64 {
     input
         .lines()
         .map(|line| {
-            let (mut beacons, mut bundles) = parser::line(line).unwrap();
-            count_arrangments(&mut beacons, &mut bundles, false, &mut HashMap::new())
+            let (beacons, bundles) = parser::line(line).unwrap();
+            count_arrangments(&beacons, &bundles)
         })
         .sum()
 }
@@ -116,18 +153,13 @@ fn part2(input: &str) -> i64 {
         .par_lines()
         .map(|line| {
             let (beacons, bundles) = parser::line(line).unwrap();
-            let mut beacons = vec![beacons; 5].join(&Some(Tile::Broken));
-            let mut bundles = std::iter::repeat(bundles)
+            let beacons = vec![beacons; 5].join(&Spring::Unknown);
+            let bundles = std::iter::repeat(bundles)
                 .take(5)
                 .flatten()
                 .collect::<Vec<_>>();
 
-            count_arrangments(
-                &mut beacons,
-                &mut bundles,
-                false,
-                &mut HashMap::new(),
-            )
+            count_arrangments(&beacons, &bundles)
         })
         .sum()
 }
@@ -141,23 +173,4 @@ christmas_tree::examples! {
         ????.######..#####. 1,6,5
         ?###???????? 3,2,1
     " => 21, 525152,
-/*
-*/
-}
-
-#[test]
-fn is_valid() {
-    let beacons = [
-        Some(Tile::Beacon),
-        Some(Tile::Beacon),
-        Some(Tile::Beacon),
-        None,
-        Some(Tile::Beacon),
-        Some(Tile::Beacon),
-        None,
-        Some(Tile::Beacon),
-    ];
-
-    assert!(is_valid_beacon_arrangement(&beacons, &[3, 2, 1]));
-    assert!(!is_valid_beacon_arrangement(&beacons, &[2, 1, 2, 2]));
 }
