@@ -10,7 +10,7 @@ pub struct Options {
     day: Option<u8>,
 
     /// Whether to use `peg` for parsing. Defaults to `true`
-    #[clap(short, long, default_value_t = true)]
+    #[clap(short, long, default_value_t = false)]
     peg: bool,
 
     /// Whether to use `glam` for vectors. Defaults to `false`
