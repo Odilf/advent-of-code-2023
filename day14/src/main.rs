@@ -122,8 +122,6 @@ fn part2(input: &str) -> i64 {
 
             assert!(loop_start <= index && index < i);
 
-            dbg!(index);
-
             return north_stress(&history[index]);
         }
 
