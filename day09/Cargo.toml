@@ -7,4 +7,3 @@ edition = "2021"
 
 [dependencies]
 christmas-tree = { version = "0.1.0", path = "../christmas-tree" }
-peg = "0.8.2"
