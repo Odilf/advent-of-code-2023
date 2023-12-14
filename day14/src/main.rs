@@ -103,7 +103,9 @@ fn part2(input: &str) -> i64 {
 
     const ITERATIONS: usize = 1_000_000_000;
 
-    for i in 0..ITERATIONS {
+    for i in 1..=ITERATIONS {
+        history.push(grid.clone());
+
         for dir in [
             Direction::North,
             Direction::West,
@@ -120,10 +122,11 @@ fn part2(input: &str) -> i64 {
 
             assert!(loop_start <= index && index < i);
 
+            dbg!(index);
+
             return north_stress(&history[index]);
         }
 
-        history.push(grid.clone());
     }
 
     north_stress(&grid)
