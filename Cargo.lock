@@ -319,6 +319,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "day15"
+version = "0.1.0"
+dependencies = [
+ "christmas-tree",
+ "peg",
+]
+
+[[package]]
 name = "day2"
 version = "0.1.0"
 dependencies = [
