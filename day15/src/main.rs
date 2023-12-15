@@ -1,3 +1,5 @@
+use std::array;
+
 christmas_tree::day!(15);
 
 fn hash(input: &str) -> i64 {
@@ -16,50 +18,45 @@ fn part1(input: &str) -> i64 {
 }
 
 fn part2<'a>(input: &'a str) -> i64 {
-    let mut lens = vec![Vec::new(); 256];
-    let mut instructions = input.trim().split(',');
-    for s in instructions {
-        let equals = |lens: &mut Vec<Vec<(&'a str, i64)>>| {
+    let mut boxes: [_; 256] = array::from_fn(|_| Vec::<(&str, i64)>::new());
+
+    for s in input.trim().split(',') {
+        None.or_else(|| {
             let mut iter = s.split('=');
             let chars = iter.next().unwrap();
             let hash = hash(chars);
 
-            let vx = &mut lens[hash as usize];
-
             let value = iter.next()?.parse::<i64>().unwrap();
 
-            if let Some((_, v)) = vx.iter_mut().find(|(s, _)| s.contains(chars)) {
+            let bx = &mut boxes[hash as usize];
+
+            if let Some((_, v)) = bx.iter_mut().find(|(s, _)| s.contains(chars)) {
                 *v = value;
             } else {
-                lens[hash as usize].push((chars, value));
+                boxes[hash as usize].push((chars, value));
             }
 
             Some(())
-        };
-
-        let dash = |lens: &mut Vec<Vec<(&'a str, i64)>>| {
+        })
+        .unwrap_or_else(|| {
             let mut iter = s.split('-');
             let chars = iter.next().unwrap();
             let hash = hash(chars);
 
-            let bx = &mut lens[hash as usize];
+            let bx = &mut boxes[hash as usize];
             bx.retain(|(s, _)| !s.contains(chars));
-
-            Some(())
-        };
-
-        equals(&mut lens).or_else(|| dash(&mut lens)).unwrap();
-    };
-
-    let mut count = 0;
-    for (i, lens) in lens.iter().enumerate() {
-        let i = i as i64 + 1;
-        for (j, (s, val)) in lens.iter().enumerate() {
-            count += i * *val * (j as i64 + 1);
-        }
+        });
     }
 
-    count
+    boxes
+        .iter()
+        .enumerate()
+        .flat_map(|(i, lens)| {
+            lens.iter()
+                .enumerate()
+                .map(move |(j, &(_, val))| (i + 1) as i64 * (j + 1) as i64 * val)
+        })
+        .sum()
 }
 
 christmas_tree::examples! {
