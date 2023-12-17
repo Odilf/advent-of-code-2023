@@ -67,10 +67,10 @@ fn solve(map: &Array2<i64>, min_straight: i64, max_straight: i64) -> i64 {
             moved_straight,
         } = &node;
 
-        if &[position.y as usize + 1, position.x as usize + 1] == size {
-            if *moved_straight >= min_straight {
-                return *cost;
-            }
+        if [position.y as usize + 1, position.x as usize + 1] == size
+            && *moved_straight >= min_straight
+        {
+            return *cost;
         }
 
         let is_better = |node: &Node, costs: &HashMap<Key, i64>| {
