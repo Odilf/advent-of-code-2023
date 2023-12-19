@@ -364,6 +364,16 @@ dependencies = [
  "christmas-tree",
  "glam",
  "peg",
+ "rayon",
+]
+
+[[package]]
+name = "day19"
+version = "0.1.0"
+dependencies = [
+ "christmas-tree",
+ "either",
+ "peg",
 ]
 
 [[package]]
