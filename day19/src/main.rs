@@ -6,63 +6,49 @@ use std::{
 christmas_tree::day!(19);
 
 #[derive(Debug, Clone)]
-struct Part<T: Copy = i64> {
-    extremely_cool_looking: T,
-    musical: T,
-    aerodinamic: T,
-    shiny: T,
+struct Part<T = i64> {
+    /// Order: a, m, s, x (alphabetical)
+    data: [T; 4],
 }
-impl Part<i64> {
-    fn value(&self) -> i64 {
-        self.extremely_cool_looking + self.musical + self.aerodinamic + self.shiny
+
+impl<T> Part<T> {
+    /// Value to index `data` (assuming `s` is one of the correct values)
+    fn index(s: &str) -> usize {
+        // It's kind of miraculous how this can work so easily.
+        //
+        // Possible values
+        // a => 97 => 0 => 0
+        // m => 109 => 12 => 1
+        // s => 115 => 18 => 2
+        // x => 120 => 23 => 3
+
+        let lead = s.bytes().next().unwrap() as usize;
+        let result = (lead - 97) / 7;
+
+        result
     }
 }
 
-impl<T: Copy> Index<&str> for Part<T> {
+impl Part<i64> {
+    fn value(&self) -> i64 {
+        self.data.iter().sum()
+    }
+}
+
+impl<T> Index<&str> for Part<T> {
     type Output = T;
 
     fn index(&self, index: &str) -> &Self::Output {
-        match index {
-            "x" => &self.extremely_cool_looking,
-            "m" => &self.musical,
-            "a" => &self.aerodinamic,
-            "s" => &self.shiny,
-            _ => panic!("Invalid index"),
-        }
+        &self.data[Self::index(index)]
     }
 }
 
-impl<T: Copy> IndexMut<&str> for Part<T> {
+impl<T> IndexMut<&str> for Part<T> {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
-        match index {
-            "x" => &mut self.extremely_cool_looking,
-            "m" => &mut self.musical,
-            "a" => &mut self.aerodinamic,
-            "s" => &mut self.shiny,
-            _ => panic!("Invalid index"),
-        }
+        &mut self.data[Self::index(index)]
     }
 }
 
-impl Default for Range {
-    fn default() -> Self {
-        Self {
-            start: 1,
-            end: 4000,
-        }
-    }
-}
-
-impl Default for Part<Range> {
-    fn default() -> Self {
-        Self {
-            extremely_cool_looking: Range::default(),
-            musical: Range::default(),
-            aerodinamic: Range::default(),
-            shiny: Range::default(),
-        }
-    }
-}
 
 struct Rule<'a> {
     subpart: &'a str,
@@ -108,10 +94,7 @@ peg::parser! {
                 "s" "=" s:number()
             "}" {
                 Part {
-                    extremely_cool_looking: x,
-                    musical: m,
-                    aerodinamic: a,
-                    shiny: s,
+                    data: [a, m, s, x]
                 }
             }
 
@@ -137,7 +120,7 @@ peg::parser! {
 
 fn part1(input: &str) -> i64 {
     let [workflows, parts] = input.split("\n\n").collect::<Vec<_>>()[..] else {
-        panic!("invalid input");
+        panic!("Invalid input");
     };
 
     let workflows = workflows
@@ -178,57 +161,7 @@ fn part1(input: &str) -> i64 {
     accepted.iter().map(|part| part.value()).sum()
 }
 
-impl Part<Range> {
-    fn value(&self) -> i64 {
-        self.extremely_cool_looking.size()
-            * self.musical.size()
-            * self.aerodinamic.size()
-            * self.shiny.size()
-    }
-}
-
-fn part2(input: &str) -> i64 {
-    let [workflows, _] = input.split("\n\n").collect::<Vec<_>>()[..] else {
-        panic!("invalid input");
-    };
-
-    let workflows = workflows
-        .lines()
-        .map(|line| parser::entry(line).unwrap())
-        .collect::<HashMap<_, _>>();
-
-    let mut queue = Vec::new();
-
-    queue.push(("in", Part::<Range>::default()));
-
-    let mut accepted = Vec::new();
-
-    while let Some((current, mut ranges)) = queue.pop() {
-        let workflow = workflows.get(current).unwrap();
-
-        for (rule, action) in &workflow.rules {
-            let (refined, unrefined) = ranges.refine(rule);
-
-            if let Some(unrefined) = unrefined {
-                ranges = unrefined;
-            };
-
-            let Some(refined) = refined else {
-                continue;
-            };
-
-            match action {
-                Action::GoTo(name) => queue.push((name, refined)),
-                Action::Reject => continue,
-                Action::Accept => accepted.push(refined),
-            }
-        }
-    }
-
-    accepted.iter().map(|part| part.value()).sum()
-}
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 struct Range {
     start: i64,
     end: i64,
@@ -237,6 +170,15 @@ struct Range {
 impl Range {
     fn size(&self) -> i64 {
         self.end - self.start + 1
+    }
+}
+
+impl Default for Range {
+    fn default() -> Self {
+        Self {
+            start: 1,
+            end: 4000,
+        }
     }
 }
 
@@ -269,7 +211,53 @@ impl Part<Range> {
             (Some(refined), Some(derefined))
         }
     }
+
+    fn value(&self) -> i64 {
+        self.data.iter().map(|subpart| subpart.size()).product()
+    }
 }
+
+fn part2(input: &str) -> i64 {
+    let [workflows, _] = input.split("\n\n").collect::<Vec<_>>()[..] else {
+        panic!("Invalid input");
+    };
+
+    let workflows = workflows
+        .lines()
+        .map(|line| parser::entry(line).unwrap())
+        .collect::<HashMap<_, _>>();
+
+    let mut queue = Vec::new();
+
+    queue.push(("in", Part { data: Default::default() }));
+
+    let mut accepted = Vec::new();
+
+    while let Some((current, mut ranges)) = queue.pop() {
+        let workflow = workflows.get(current).unwrap();
+
+        for (rule, action) in &workflow.rules {
+            let (refined, unrefined) = ranges.refine(rule);
+
+            if let Some(unrefined) = unrefined {
+                ranges = unrefined;
+            };
+
+            let Some(refined) = refined else {
+                continue;
+            };
+
+            match action {
+                Action::GoTo(name) => queue.push((name, refined)),
+                Action::Reject => continue,
+                Action::Accept => accepted.push(refined),
+            }
+        }
+    }
+
+    accepted.iter().map(|part| part.value()).sum()
+}
+
 
 christmas_tree::examples! {
     "
