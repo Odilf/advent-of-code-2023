@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use rayon::prelude::*;
 
 christmas_tree::day!(18);
