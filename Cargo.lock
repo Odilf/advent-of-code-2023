@@ -294,7 +294,7 @@ name = "day10"
 version = "0.1.0"
 dependencies = [
  "christmas-tree",
- "glam",
+ "glam 0.24.2",
 ]
 
 [[package]]
@@ -302,7 +302,7 @@ name = "day11"
 version = "0.1.0"
 dependencies = [
  "christmas-tree",
- "glam",
+ "glam 0.24.2",
 ]
 
 [[package]]
@@ -343,7 +343,7 @@ version = "0.1.0"
 dependencies = [
  "christmas-tree",
  "either",
- "glam",
+ "glam 0.24.2",
  "rayon",
 ]
 
@@ -352,7 +352,7 @@ name = "day17"
 version = "0.1.0"
 dependencies = [
  "christmas-tree",
- "glam",
+ "glam 0.24.2",
  "memoize",
  "ndarray",
 ]
@@ -362,7 +362,7 @@ name = "day18"
 version = "0.1.0"
 dependencies = [
  "christmas-tree",
- "glam",
+ "glam 0.24.2",
  "peg",
  "rayon",
 ]
@@ -385,11 +385,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "day20"
+version = "0.1.0"
+dependencies = [
+ "christmas-tree",
+ "num",
+ "peg",
+]
+
+[[package]]
+name = "day21"
+version = "0.1.0"
+dependencies = [
+ "christmas-tree",
+ "glam 0.25.0",
+]
+
+[[package]]
+name = "day22"
+version = "0.1.0"
+dependencies = [
+ "christmas-tree",
+ "glam 0.25.0",
+ "peg",
+]
+
+[[package]]
 name = "day3"
 version = "0.1.0"
 dependencies = [
  "christmas-tree",
- "glam",
+ "glam 0.24.2",
 ]
 
 [[package]]
@@ -582,6 +608,12 @@ name = "glam"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5418c17512bdf42730f9032c74e1ae39afc408745ebb2acf72fbc4691c17945"
+
+[[package]]
+name = "glam"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "151665d9be52f9bb40fc7966565d39666f2d1e69233571b71b87791c7e0528b3"
 
 [[package]]
 name = "h2"
