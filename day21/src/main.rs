@@ -4,27 +4,33 @@ christmas_tree::day!(21);
 
 type Vec2 = glam::I64Vec2;
 
-fn parse(input: &str) -> (HashSet<Vec2>, Vec2, Vec2) {
-    let mut start = Vec2::ZERO;
+fn parse(input: &str) -> (HashSet<Vec2>, Vec2, i64) {
+    let mut start = None;
     let mut size = Vec2::ZERO;
 
     let mut walls = HashSet::new();
 
     for (y, line) in input.lines().enumerate() {
-        size.y = size.y.max(y as i64 + 1);
+        size.y = size.y.max(y as i64);
         for (x, c) in line.chars().enumerate() {
-            size.x = size.x.max(x as i64 + 1);
+            size.x = size.x.max(x as i64);
+
             let pos = Vec2::new(x as i64, y as i64);
 
             if c == '#' {
                 walls.insert(pos);
             } else if c == 'S' {
-                start = pos;
+                assert!(start.is_none());
+                start = Some(pos);
             }
         }
     }
 
-    (walls, start, size)
+    assert_eq!(size.x, size.y);
+
+    let start = start.unwrap();
+
+    (walls, start, size.x + 1)
 }
 
 const DIRECTIONS: [Vec2; 4] = [
@@ -35,105 +41,77 @@ const DIRECTIONS: [Vec2; 4] = [
 ];
 
 fn part1(input: &str) -> i64 {
-    let (walls, start, size) = parse(input);
-
-    count_steps(&walls, start, 64, size)
+    solve1(input, 64)
 }
 
-fn count_steps(walls: &HashSet<Vec2>, start: Vec2, steps: i64, size: Vec2) -> i64 {
+fn solve1(input: &str, steps: i64) -> i64 {
+    let (walls, start, size) = parse(input);
+
+    count_locations(&walls, start, steps, size)
+}
+
+fn count_locations(walls: &HashSet<Vec2>, start: Vec2, steps: i64, size: i64) -> i64 {
+    let mut queue = vec![start];
+    let mut visited = HashSet::new();
     let mut count = 0;
 
-    let mut next_queue = vec![start];
-    let mut visited = HashSet::new();
-    let mut counted = HashSet::new();
-
-    let mut left = [None; 4];
-    let mut completed_main = 0;
-
     for i in 0..=steps {
-        let mut queue = Vec::new();
-        mem::swap(&mut queue, &mut next_queue);
+        let mut next_queue = Vec::new();
 
-        if queue.is_empty() {
-            completed_main = i;
-            break;
-        }
-
-        for node in queue {
-            let actual = Vec2::new(node.x.rem_euclid(size.x), node.y.rem_euclid(size.y));
-            for (j, dir) in DIRECTIONS.iter().enumerate() {
-                if actual * *dir != node * *dir {
-                    left[j] = Some((i, counted.contains(&actual)));
-                    continue;
-                }
-            }
-
-            if !visited.insert(node) || walls.contains(&actual) {
+        while let Some(node) = queue.pop() {
+            let original = Vec2::new(node.x.rem_euclid(size), node.y.rem_euclid(size));
+            if walls.contains(&original) || !visited.insert(node) {
                 continue;
             }
 
-            if i % 2 == 0 {
+            if i % 2 == steps % 2 {
                 count += 1;
-                counted.insert(node);
             }
 
             for dir in DIRECTIONS.iter() {
-                if actual * *dir != node * *dir {
-                    continue;
-                }
-
                 let next = node + *dir;
                 next_queue.push(next);
             }
         }
+
+        mem::swap(&mut queue, &mut next_queue);
     }
 
-    let main_count = count;
-
-    dbg!(main_count);
-
-    for left in left {
-        let (left_index, same_parity) = left.unwrap();
-
-        // count += main_count * (left_index * n + main_completed)
-        let mutliplier = (steps - completed_main) as f64 / left_index as f64;
-
-        count += (main_count as f64 * mutliplier).floor() as i64;
-    }
-
-    dbg!(count);
-
-    // for y in 0..size.y {
-    //     for x in 0..size.x {
-    //         let pos = Vec2::new(x, yli;
-    //         if walls.contains(&pos) {
-    //             print!("#");
-    //         } else if counted.contains(&pos) {
-    //             print!("O");
-    //         } else if visited.contains(&pos) {
-    //             print!("o");
-    //         } else {
-    //             print!(".");
-    //         }
-    //     }
-    //     println!();
-    // }
-    //
-    // 
-    // count
-    //
-    todo!()
+    count
 }
 
 fn part2(input: &str) -> i64 {
+    const STEPS: i64 = 26_501_365;
+
     let (walls, start, size) = parse(input);
 
-    count_steps(&walls, start, 5000, size)
-    // count_steps(&walls, start, 26501365)
+    let x = [0, 1, 2].map(|i| (i * 2 + 1) * size / 2);
+    let y = x.map(|x| count_locations(&walls, start, x, size) as f64);
+
+    // Lagrange polynomial
+    let result = (0..3)
+        .map(|i| {
+            (0..3)
+                .filter(|&j| i != j)
+                .map(|j| {
+                    let num = STEPS - x[j];
+                    let den = x[i] - x[j];
+
+                    num as f64 / den as f64
+                })
+                .product::<f64>()
+                * y[i]
+        })
+        .sum::<f64>();
+
+    assert!((result.floor() - result).abs() <= 0.001);
+
+    result.floor() as i64
 }
 
-christmas_tree::examples! {
-    "
+#[cfg(test)]
+mod tests {
+    const TEST_INPUT: &str = christmas_tree::indoc! {"
         ...........
         .....###.#.
         .###.##..#.
@@ -145,5 +123,10 @@ christmas_tree::examples! {
         .##.#.####.
         .##..##.##.
         ...........
-    " => 16, 16733044,
+    "};
+
+    #[test]
+    fn part1() {
+        assert_eq!(super::solve1(TEST_INPUT, 6), 16);
+    }
 }
