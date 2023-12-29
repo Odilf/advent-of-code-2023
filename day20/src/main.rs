@@ -93,12 +93,12 @@ fn press_button(map: &mut HashMap<&str, Module<'_>>, mut f: impl FnMut(&str, Pul
     let mut queue = VecDeque::from([("", "broadcaster", Pulse::Low)]);
 
     while let Some((from, name, pulse)) = queue.pop_front() {
+        f(name, pulse);
+
         let Some(module) = map.get_mut(name) else {
             // Because sometimes outputs have no sends
             continue;
         };
-
-        f(name, pulse);
 
         match &mut module.typ {
             ModuleType::FlipFlop(on) => match pulse {
@@ -140,6 +140,8 @@ fn part1(input: &str) -> i64 {
     for _ in 0..1000 {
         press_button(&mut map, |_name, pulse| count[pulse as usize] += 1);
     }
+
+    dbg!(&count);
 
     count.iter().product()
 }
