@@ -1,12 +1,13 @@
-use glam::I64Vec2;
 use std::collections::HashSet;
 
 christmas_tree::day!(11);
 
-fn parse(input: &str, expansion_multiplier: i64) -> Vec<I64Vec2> {
+type Vec2 = glam::I64Vec2;
+
+fn parse(input: &str, expansion_multiplier: i64) -> Vec<Vec2> {
     let expansion_size = expansion_multiplier - 1;
 
-    let size = I64Vec2::new(
+    let size = Vec2::new(
         input.lines().next().unwrap().len() as i64,
         input.lines().count() as i64,
     );
@@ -15,10 +16,12 @@ fn parse(input: &str, expansion_multiplier: i64) -> Vec<I64Vec2> {
 
     let index = |x, y| input[(y * (size.x + 1) + x) as usize];
 
-    let empty_columnns = (0..size.x).filter(|&x| (0..size.y).all(|y| index(x, y) == b'.')).collect::<HashSet<_>>();
+    let empty_columnns = (0..size.x)
+        .filter(|&x| (0..size.y).all(|y| index(x, y) == b'.'))
+        .collect::<HashSet<_>>();
 
     let mut output = Vec::new();
-    let mut offset = I64Vec2::ZERO;
+    let mut offset = Vec2::ZERO;
     for y in 0..size.y {
         offset.x = 0;
         let mut is_column_empty = true;
@@ -27,7 +30,7 @@ fn parse(input: &str, expansion_multiplier: i64) -> Vec<I64Vec2> {
             if empty_columnns.contains(&x) {
                 offset.x += expansion_size;
             } else if index(x, y) == b'#' {
-                output.push(I64Vec2::new(x, y) + offset);
+                output.push(Vec2::new(x, y) + offset);
                 is_column_empty = false;
             }
         }
@@ -43,12 +46,11 @@ fn parse(input: &str, expansion_multiplier: i64) -> Vec<I64Vec2> {
 fn solve(input: &str, expansion_multiplier: i64) -> i64 {
     let galaxies = parse(input, expansion_multiplier);
 
-    let mut iter = galaxies.into_iter();
     let mut count = 0;
 
-    while let Some(galaxy) = iter.next() {
-        for other in iter.clone() {
-            let I64Vec2 { x, y } = (galaxy - other).abs();
+    for (i, &galaxy) in galaxies.iter().enumerate() {
+        for &other in galaxies[i + 1..].iter() {
+            let Vec2 { x, y } = (galaxy - other).abs();
             count += x + y;
         }
     }
