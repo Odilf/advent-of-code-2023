@@ -69,9 +69,6 @@ fn part2(input: &str) -> usize {
     parse(input)
         .enumerate()
         .map(|(i, (mut rows, mut columns))| {
-            dbg!(i);
-            dbg!(&rows, &columns);
-
             let row_len = rows.len();
             let col_len = columns.len();
 
